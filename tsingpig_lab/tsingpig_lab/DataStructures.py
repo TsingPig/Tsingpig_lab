@@ -5,9 +5,10 @@ from typing import List
 class ST:
     def __init__(self, nums: List, opt = lambda a, b: max(a, b)):
         """
-        在 O(nlogn) 的时间内预处理数组 nums，使得查询区间[L, R]opt的时间复杂度为 O(1)。
-        :param nums: 数组
-        :param opt: 比较函数，默认为最值
+        Initialize the Sparse Table (ST) data structure with the given list of numbers and an optional comparison function.
+
+        :param nums: The list of numbers to preprocess.
+        :param opt: The comparison function to use for queries. Default is max.
         """
         n = len(nums)
         log = [0] * (n + 1)
@@ -26,7 +27,11 @@ class ST:
 
     def qry(self, L: int, R: int):
         """
-        查询区间 [L, R] 的最值（时间复杂度：O(1)）
+        Query the maximum value within the range [L, R].
+
+        :param L: The left index of the range.
+        :param R: The right index of the range.
+        :return: The maximum value within the range [L, R].
         :rtype: object
         """
         k = self.log[R - L + 1]
