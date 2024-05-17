@@ -17,7 +17,7 @@ class BaseConverter:
         if not isinstance(a, int) or not isinstance(b, int):
             raise ValueError("进制必须是整数！")
 
-    def convert(self, num: str):
+    def convert(self, num: str) -> str:
         """
         将 a 进制的数字 number 转换为 b 进制
         :param num: a进制的数字对应的字符串
@@ -38,22 +38,22 @@ class BaseConverter:
         # 将输入数字从 a 进制转换为十进制
         num_dec = 0
         for c in num:
-            num_dec = num_dec * self.a + self._char_to_int(c)
+            num_dec = num_dec * self.a + self.char_to_int(c)
 
         # 将十进制数字转换为 b 进制
         res = ""
         while num_dec > 0:
             r = num_dec % self.b
-            res = self._int_to_char(r) + res
+            res = self.int_to_char(r) + res
             num_dec //= self.b
 
         return '-' + res if flag else res
 
-    def _char_to_int(self, c):
+    def char_to_int(self, c: str) -> int:
         """
-        将字符转换为数字
-        :param c:
-        :return:
+        将字符串形式的数字字符串，转换为整数
+        :param c: 字符串表示的数字
+        :return: 对应的整数
         """
         if c.isdigit():
             return int(c)
@@ -61,11 +61,11 @@ class BaseConverter:
             c = c.upper()
             return ord(c) - ord('A') + 10
 
-    def _int_to_char(self, n):
+    def int_to_char(self, n: int) -> str:
         """
-        将数字转换为字符
-        :param n:
-        :return:
+        将整数数字n转换为对应的字符串形式
+        :param n: 整数
+        :return: 对应的字符串
         """
         if n < 10:
             return str(n)
@@ -73,7 +73,9 @@ class BaseConverter:
             return chr(ord('A') + n - 10)
 
 
-# 二进制码转换器
+
+
+# 二进制类
 class Bin():
     def __init__(self, num: str, b: int = 2):
         """
@@ -97,7 +99,6 @@ class Bin():
             res += str(int(res[-1]) ^ int(num[i]))
         return res
 
-
     def bin_to_grey(self) -> str:
         """
         将当前的二进制码视为二进制码，求解其对应的格雷码
@@ -110,4 +111,3 @@ class Bin():
         for i in range(1, n):
             res += str(int(num[i - 1]) ^ int(num[i]))
         return res
-
