@@ -92,7 +92,11 @@ print(ft.query(-99, 9)) # 7
 
 
 
-#### 2.1.3 Segment Tree
+#### 2.1.3  SegmentTree
+
+This type of segment tree is static, which means you need to **predetermine the size of the input arrays**. And during the whole usage of this tree, the size is fixed and can not be change.
+
+This static nature can offer performance benefits in scenarios where the size of the dataset is known and fixed, avoiding the overhead associated with dynamic resizing.
 
 **Usage**
 
@@ -124,9 +128,50 @@ tr.update(3, 5, -10) # [5, 4, -10, -10, -10]
 print(tr.query(1, 3)) # -10
 ```
 
-
-
 > Note: The index is start with 1.
+
+
+
+####  2.1.4 SegmentTreeDynamic
+
+This type of segment tree is dynamic, which means it supports **dynamic allocation of nodes** and **efficient updates and queries on potentially very large ranges**. This is beneficial when the range of possible indices is large, but the number of actual updates or queries is sparse.
+
+The dynamic nature of this segment tree allows it to handle large datasets efficiently without requiring a fixed size at initialization, making it suitable for scenarios with unknown or very large ranges.
+
+**Usage**
+
+| Method                                        | Time Complexity | Description                                                  |
+| --------------------------------------------- | --------------- | ------------------------------------------------------------ |
+| `__init__(ops='sum', max_val=1e9)`            | $O(1)$          | Initialize the Segment Tree data structure with the operation type `ops`, defaulting to sum operation, and a maximum value for the range. |
+| `update(ul, ur, val, node=None, l=1, r=None)` | $O(\log n)$     | Update the range [ul, ur] with the given value `val`.        |
+| `query(ql, qr, node=None, l=1, r=None)`       | $O(\log n)$     | Query the result value within the range [ql, qr].            |
+
+**Sample**
+
+```python
+Import the SegmentTreeDynamic class
+from your_module import SegmentTreeDynamic
+
+# Initialize the segment tree for sum operation with a maximum value of 1e15
+tr = SegmentTreeDynamic('sum', int(1e15))
+tr.update(1, 5, 99)
+tr.update(1, 5, 1)
+print(tr.query(1, 1))  # 100
+print(tr.query(1, 5))  # 500
+
+# Initialize the segment tree for min operation
+tr = SegmentTreeDynamic(ops='min')
+tr.update(1, 5, 10)
+print(tr.query(1, 4)) # 10
+tr.update(2, 4, 5) # [10, 5, 5, 5, 10]
+print(tr.query(4, 5)) # 5
+tr.update(3, 5, -10) # [10, 5, -10, -10, -10]
+print(tr.query(1, 3)) # -10
+```
+
+> Note: The index starts at 1.
+
+
 
 ### 2.2. Algorithms
 
@@ -226,12 +271,12 @@ twine upload dist/*
 And then it works, users can download your package by this line in conda:
 
 ```
-pip install TsingPig-Lab==0.1.7 -i https://www.pypi.org/simple/
+pip install TsingPig-Lab==0.2.1 -i https://www.pypi.org/simple/
 ```
 
 API
 
 ```
-pypi-AgEIcHlwaS5vcmcCJDg0MjZkZGM0LWQ0MjQtNGUyNC04NWI3LTExMTMwYTE4NjU2NQACKlszLCI3NDRkODY1Ni02ODE3LTRiNjEtYTliMi1kZThmOTI0YjQ5ZWEiXQAABiBN54j1SgGHWIqkPfyu1Iq3i5qwGrUB5UGPpeEYpyIf4A
+pypi-AgEIcHlwaS5vcmcCJGYxZWEwMjY0LWJmMGUtNGMwMS1hMjM4LTVhZTA2N2EwMDA3MAACKlszLCI3NDRkODY1Ni02ODE3LTRiNjEtYTliMi1kZThmOTI0YjQ5ZWEiXQAABiC-6w2Qs90CFAe8UE5e9oYxb5RbBaRY0KXngikzxWfPcQ
 ```
 

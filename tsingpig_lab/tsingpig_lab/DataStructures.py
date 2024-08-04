@@ -3,6 +3,9 @@ from math import *
 from typing import List
 
 
+__all__ = ['ST', 'FenwickTree', 'SegmentTree', 'SegmentTreeDynamic']
+
+
 class ST:
     def __init__(self, nums: List, opt = lambda a, b: max(a, b)):
         """
@@ -120,7 +123,7 @@ class FenwickTree:
 
 class SegmentTree:
     """
-    线段树数据结构，支持不同操作类型的线段树构建和区间查询。
+    lazy线段树(不带动态开点)，支持求和、最值、二进制操作，区间查询、区间修改操作。
     """
 
     __slots__ = ['node', 'lazy', 'n', 'nums', 'op', 'ini', 'ops']
@@ -134,7 +137,7 @@ class SegmentTree:
         """
         n = len(nums)
         if ops == 'sum' or ops == 'bin':
-            op, ini = lambda a, b: a + b, 0
+            op, ini = lambda a, b: a + b if a is not None else b, 0
         elif ops == 'max':
             op, ini = lambda a, b: max(a, b), float('-inf')
         elif ops == 'min':
@@ -176,8 +179,11 @@ class SegmentTree:
         if self.ops == 'bin':
             self.node[idx] = dr - dl + 1
             self.lazy[idx] = True
+        elif self.ops == 'sum':
+            self.node[idx] = self.op(self.node[idx], (dr - dl + 1) * val)
+            self.lazy[idx] = self.op(self.lazy[idx], val)
         else:
-            self.node[idx] = self.op(val, self.node[idx])
+            self.node[idx] = self.op(self.node[idx], val)
             self.lazy[idx] = val
 
     def __pushdown(self, idx, pl, pr):
@@ -209,7 +215,7 @@ class SegmentTree:
         if ul <= l and r <= ur:
             self.__do(idx, l, r, val)
             return
-        if self.lazy[idx]:
+        if self.lazy[idx] is not None:
             self.__pushdown(idx, l, r)
         mid = (l + r) >> 1
         if ul <= mid: self.update(ul, ur, val, idx << 1, l, mid)
@@ -230,10 +236,137 @@ class SegmentTree:
         if r is None: r = self.n
         if ql <= l and r <= qr:
             return self.node[idx]
-        if self.lazy[idx]:
+        if self.lazy[idx] is not None:
             self.__pushdown(idx, l, r)
         mid = (l + r) >> 1
         ansl, ansr = self.ini, self.ini
         if ql <= mid: ansl = self.query(ql, qr, idx << 1, l, mid)
         if qr > mid: ansr = self.query(ql, qr, (idx << 1) + 1, mid + 1, r)
         return self.op(ansl, ansr)
+
+
+class SegmentTreeDynamicNode:
+    """
+    线段树动态节点
+    """
+
+    __slots__ = ['l', 'r', 'lazy', 'val']
+
+    def __init__(self, val = 0):
+        self.l = None
+        self.r = None
+        self.lazy = None
+        self.val = val
+
+
+class SegmentTreeDynamic:
+    """
+    lazy线段树(带动态开点)，支持求和、最值、二进制操作，区间查询、区间修改操作。
+    """
+
+    __slots__ = ['root', 'node', 'op', 'ini', 'ops', 'max_val']
+
+    def __init__(self, ops: str = 'sum', max_val: int = int(1e9)):
+        """
+        初始化线段树。
+
+        :param ops: 操作类型，支持'sum'、'bin'、'max'和'min'，分别表示求和、二进制操作、最大值和最小值。默认为'sum'。
+        :param max_val: 线段树值域最大值。
+        """
+        if ops == 'sum' or ops == 'bin':
+            op, ini = lambda a, b: a + b if a is not None else b, 0
+        elif ops == 'max':
+            op, ini = lambda a, b: max(a, b), -inf
+        elif ops == 'min':
+            op, ini = lambda a, b: min(a, b), inf
+
+        self.op = op
+        self.ini = ini
+        self.ops = ops
+        self.max_val = max_val
+        self.root = SegmentTreeDynamicNode(ini)
+
+    def __do(self, node, dl, dr, val = None):
+        """
+        执行延迟更新或标记操作。
+
+        :param node: 当前节点。
+        :param dl: 当前节点表示的区间左端点。
+        :param dr: 当前节点表示的区间右端点。
+        :param val: 要更新的值。
+        """
+        if self.ops == 'bin':
+            node.val = dr - dl + 1
+            node.lazy = True
+        elif self.ops == 'sum':
+            node.val = self.op(node.val, (dr - dl + 1) * val)
+            node.lazy = self.op(node.lazy, val)
+        else:
+            node.val = self.op(node.val, val)
+            node.lazy = val
+
+    def __pushdown(self, node, pl, pr):
+        """
+        执行延迟更新操作。
+
+        :param node: 当前节点。
+        :param pl: 当前节点表示的区间左端点。
+        :param pr: 当前节点表示的区间右端点。
+        """
+        val = node.lazy
+        mid = (pl + pr) >> 1
+        self.__do(node.l, pl, mid, val)
+        self.__do(node.r, mid + 1, pr, val)
+        node.lazy = None
+
+    def update(self, ul, ur, val, node = None, l = 1, r = None):
+        """
+         更新线段树的区间值。
+
+         :param ul: 区间左端点。
+         :param ur: 区间右端点。
+         :param val: 更新值。
+         :param node: 当前节点。
+         :param l: 当前节点表示的区间左端点。
+         :param r: 当前节点表示的区间右端点。
+         """
+        if node is None: node = self.root
+        if r is None: r = self.max_val
+        if ul <= l and r <= ur:
+            self.__do(node, l, r, val)
+            return
+        if node.l is None: node.l = SegmentTreeDynamicNode(self.ini)
+        if node.r is None: node.r = SegmentTreeDynamicNode(self.ini)
+        if node.lazy is not None:
+            self.__pushdown(node, l, r)
+        mid = (l + r) >> 1
+        if ul <= mid: self.update(ul, ur, val, node.l, l, mid)
+        if ur > mid: self.update(ul, ur, val, node.r, mid + 1, r)
+        node.val = self.op(node.l.val, node.r.val)
+
+    def query(self, ql, qr, node = None, l = 1, r = None):
+        """
+        查询线段树的区间值。
+
+        :param ql: 查询区间左端点。
+        :param qr: 查询区间右端点。
+        :param node: 当前节点。
+        :param l: 当前节点表示的区间左端点。
+        :param r: 当前节点表示的区间右端点。
+        :return: 查询区间的结果值。
+        """
+        if node is None: node = self.root
+        if r is None: r = self.max_val
+        if ql <= l and r <= qr:
+            return node.val
+        if node.l is None: node.l = SegmentTreeDynamicNode(self.ini)
+        if node.r is None: node.r = SegmentTreeDynamicNode(self.ini)
+        if node.lazy is not None:
+            self.__pushdown(node, l, r)
+        mid = (l + r) >> 1
+        ansl, ansr = self.ini, self.ini
+        if ql <= mid: ansl = self.query(ql, qr, node.l, l, mid)
+        if qr > mid: ansr = self.query(ql, qr, node.r, mid + 1, r)
+        return self.op(ansl, ansr)
+
+
